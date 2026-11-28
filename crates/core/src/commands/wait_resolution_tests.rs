@@ -116,7 +116,7 @@ fn snapshot_with_one_ref() -> String {
             value: None,
             description: None,
             native_id: None,
-            unique_at_capture: true,
+            proof: crate::IdentityProof::Unique,
         },
         geometry: crate::RefGeometry {
             bounds_space: None,
@@ -139,6 +139,7 @@ fn snapshot_with_one_ref() -> String {
             root_ref: None,
             path_is_absolute: false,
             path: smallvec::SmallVec::new(),
+            chain: Default::default(),
         },
     });
     RefStore::new().unwrap().save_new_snapshot(&refmap).unwrap()

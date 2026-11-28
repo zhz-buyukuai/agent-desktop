@@ -159,6 +159,9 @@ jobs:
       - name: Enforce no delivery-plan references in source
         run: scripts/check-no-phase-references.sh
 
+      - name: Enforce no application names in runtime source
+        run: scripts/check-no-app-names.sh
+
       - name: Enforce the stale_ref constructors take only ref ids
         run: scripts/check-stale-ref-constructor-misuse.sh
 
@@ -299,6 +302,9 @@ jobs:
         run: |
           rustup show
           rustup component add clippy
+
+      - name: Enforce no application names in runtime source
+        run: scripts/check-no-app-names.sh
 
       - name: Install AT-SPI bus and virtual display
         run: |
@@ -443,6 +449,10 @@ jobs:
 
       - name: Install Rust toolchain
         run: rustup show
+
+      - name: Enforce no application names in runtime source
+        shell: bash
+        run: scripts/check-no-app-names.sh
 
       # Core resolves its home directory from HOME, then USERPROFILE (crates/core/src/refs/mod.rs), so the lane points both at a throwaway directory.
       - name: Isolate HOME for the whole lane

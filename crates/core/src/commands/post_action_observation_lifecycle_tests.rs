@@ -145,6 +145,54 @@ fn process_owned_wait_uses_process_window_and_refuses_unmarked_missing_window() 
     }
 }
 
+struct RecordedPopoverAdapter;
+
+impl ObservationOps for RecordedPopoverAdapter {
+    fn is_application_surface(&self, surface: crate::SnapshotSurface) -> bool {
+        surface == crate::SnapshotSurface::Popover
+    }
+}
+
+impl ActionOps for RecordedPopoverAdapter {}
+impl InputOps for RecordedPopoverAdapter {}
+impl SystemOps for RecordedPopoverAdapter {
+    fn process_state(
+        &self,
+        _process: ProcessIdentity,
+        _deadline: Deadline,
+    ) -> Result<ProcessState, AdapterError> {
+        Ok(ProcessState::Running)
+    }
+}
+
+#[test]
+fn a_surface_ref_that_recorded_its_window_observes_that_window() {
+    use crate::snapshot::{
+        ref_owner_observation::RefOwnerObservation, surface_target::ref_observation_surface,
+        surface_target::resolve_ref_owner,
+    };
+    let adapter = RecordedPopoverAdapter;
+    let mut entry = menu_entry();
+    entry.source.source_surface = crate::SnapshotSurface::Popover;
+    entry.source.source_window_id = Some("w-99".into());
+    entry.source.source_window_title = Some("Filters".into());
+
+    let owner = match resolve_ref_owner(&adapter, &entry, Deadline::after(250).unwrap()) {
+        Ok(RefOwnerObservation::Present(owner)) => owner,
+        Ok(_) => panic!("a running process is present"),
+        Err(error) => panic!("a running process resolves its owner: {error}"),
+    };
+    let crate::SnapshotOwner::Window(window) = owner else {
+        panic!("a surface that recorded its window is observed at that window");
+    };
+    assert_eq!(window.id, "w-99");
+    assert_eq!(window.title, "Filters");
+    assert_eq!(
+        ref_observation_surface(&adapter, &entry),
+        crate::SnapshotSurface::Popover
+    );
+}
+
 struct StrictReadAdapter {
     deadline: Deadline,
     code: ErrorCode,
